@@ -1,235 +1,245 @@
-import { contractAtom, nftsAtom, web3WalletAtom } from "@/atoms/web3";
+import { useState, useEffect } from "react";
+import { useAtom } from "jotai";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardFooter } from "@/components/ui/card";
-import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
-
+import Image from "../../public/images/hedera.png";
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { NFT } from "@/interface";
-
+} from "@/components/ui/dialog";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card"
-import { verifyCID } from "@/apis";
+} from "@/components/ui/hover-card";
+import { getNotarizations } from "../apis";
 import { useToast } from "@/components/ui/use-toast";
-
-const opensea_url = import.meta.env.VITE_OPENSEA_URL;
-const contract_address = import.meta.env.VITE_CONTRACT_ADDRESS;
-
+import { sendNft } from "../config/walletconnect";
 
 export default function NFTPage() {
-  const [isLoading,] = useState(false);
-  const [nfts, setNfts] = useAtom(nftsAtom);
-  const [pagination, setPagination] = useState(5);
-  const [dialogNFT, setDialogNFT] = useState<NFT | null>(null);
-
-  const [contract,] = useAtom(contractAtom);
-  const [wallet,] = useAtom(web3WalletAtom);
+  const [nfts, setNfts] = useState([]);
+  const [selectedNFT, setSelectedNFT] = useState(null);
   const toast = useToast();
+  console.log(selectedNFT);
+  const [, setDecodedMetadata] = useState(null);
 
-
-  async function getNftInfo(tokenid: number) {
-
-    if (typeof wallet === 'number' || typeof contract === 'number') {
-      return;
-    }
-
+  const decodeBase64 = (base64String) => {
     try {
-      const tokenId = parseInt(await contract.tokenOfOwnerByIndex((await wallet.getSigner()).address, tokenid));
-      const tokenUrl: string = await contract.tokenURI(tokenId);
-      const tokenMetadata = await fetch("https://jade-content-mollusk-671.mypinata.cloud/ipfs/" + tokenUrl.slice(7, tokenUrl.length), { method: "GET" });
-  
-      let data = await tokenMetadata.json()
-      data["tokenid"] = tokenId
-      return data
-    }
-
-    catch (e) {
-       
-    }
-
-  }
-
-  async function getNFTSOfOwner() {
-    try {
-
-      if (typeof wallet === 'number' || typeof contract === 'number') {
-        return;
-      }
-
-      const totalSupply = parseInt(await contract.totalSupply());
-      console.log(totalSupply)
-      const promises = [];
-
-      for (let i = 0; i < totalSupply; i++) {
-        promises.push(getNftInfo(i))
-      }
-
-      const res = await Promise.all(promises);
-      setNfts(res);
-
+      return atob(base64String);
     } catch (e) {
-      console.log(e)
+      console.error("Failed to decode Base64 string", e);
+      return null;
     }
-  }
-
-  const incrementPagination = () => {
-    if (pagination > nfts.length) return
-    setPagination(pagination * 2);
-  }
-
-  const verify = async (cid: string) => {
-    let res = await verifyCID(cid);
-
-    if (res) {
-      toast.toast({ title: "Token Verification", description: "Token Verified" });
-    } else {
-      toast.toast({ title: "Token Verification", description: "Invalid Token" })
-    }
-  }
-
+  };
 
   useEffect(() => {
-
-    if (contract !== undefined) {
-      getNFTSOfOwner();
+    if (selectedNFT && selectedNFT.metadata) {
+      const decodedUrl = decodeBase64(selectedNFT.metadata);
+      if (decodedUrl) {
+        fetch(decodedUrl)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => setDecodedMetadata(data))
+          .catch((err) => {
+            console.error("Failed to fetch metadata", err);
+            // toast.toast({
+            //   title: "Fetch Error",
+            //   description: "Failed to fetch metadata",
+            // });
+          });
+      }
     }
+  }, [selectedNFT]);
 
-  }, [contract])
+  const verify = async () => {
+    try {
+      const res = await getNotarizations();
+      // console.log("test", res[0].nfts);
+      setNfts(res[0].nfts);
 
+      if (res && res.length > 0) {
+        toast.toast({
+          title: "Token Verification",
+          description: "Token Verified",
+        });
+      } else {
+        toast.toast({
+          title: "Token Verification",
+          description: "Invalid Token",
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying tokens", error);
+      toast.toast({
+        title: "Verification Error",
+        description: "Failed to verify tokens",
+      });
+    }
+  };
+
+  useEffect(() => {
+    verify();
+  }, []);
+  console.log(nfts);
   return (
-    <DashboardLayout loading={isLoading}>
+    <DashboardLayout loading={false}>
       <h1 className="text-3xl font-bold">Your NFTs</h1>
 
-      <Dialog>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {nfts.map((nft) => (
+          <Card key={nft.tokenid} className="p-4 bg-white rounded-lg shadow-md">
+            <img
+              src={Image}
+              alt={nft.name}
+              className="w-full h-48 object-cover rounded-md mb-4"
+            />
+            <CardDescription className="text-lg font-semibold">
+              {nft.name}
+            </CardDescription>
+            <CardFooter>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    onClick={() => setSelectedNFT(nft)}
+                    variant="primary"
+                    className="mx-auto mt-2"
+                  >
+                    View Details
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
 
-        <div className="flex flex-row gap-4 flex-wrap my-6">
-          {nfts.slice(0, pagination).map((item) => {
-            console.log(item)
-            return (
-              <DialogTrigger onClick={() => setDialogNFT(item)} asChild>
-                <Card className="p-4 w-[200px]">
-                  <CardDescription className="flex justify-center">
-                    <img src="https://bafybeidwxzqyksomxn66jdym6whonuvmj6hmohvj527cssikxn6czgxsxe.ipfs.dweb.link/blockvolt.png" className="rounded-md" />
-                  </CardDescription>
-                  <CardFooter className="flex flex-col items-start pt-4 px-1">
-                    <p className="text-md font-semibold text-gray-600 ml-[1px]">{item.tokenid}</p>
-                    <p className="text-sm font-semibold text-gray-600">Blockvolt</p>
-                  </CardFooter>
-                </Card>
-              </DialogTrigger>
-            )
-          })}
-        </div>
-
-        {/* NFT Detail dialog box */}
-        {
-          dialogNFT !== null &&
-
-          (
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Blockvolt {dialogNFT?.tokenid}</DialogTitle>
-                <DialogDescription>
-                  Blockvolt carbon tokens can be exchanged easily.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex flex-wrap justify-between">
-
-                <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
-                  <p className="text-[12px] text-gray-600 font-semibold">CID</p>
-                  <HoverCard>
-                    <HoverCardTrigger className="text-[14px] font-light">{dialogNFT.attributes.cid.slice(0, 17)}...</HoverCardTrigger>
-                    <HoverCardContent className="break-words">
-                      {dialogNFT.attributes.cid}
-                    </HoverCardContent>
-                  </HoverCard>
-                </div>
-
-                <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
-                  <p className="text-[12px] text-gray-600 font-semibold">LOCATION</p>
-                  <HoverCard>
-                    <HoverCardTrigger className="text-[14px] font-light">{dialogNFT.attributes.location}</HoverCardTrigger>
-                  </HoverCard>
-                </div>
-
-                <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
-                  <p className="text-[12px] text-gray-600 font-semibold">MACHINE ADDRESS</p>
-                  <HoverCard>
-                    <HoverCardTrigger className="text-[14px] font-light">{dialogNFT.attributes.machine_address.slice(0, 17)}...</HoverCardTrigger>
-                    <HoverCardContent className=" break-words">
-                      {dialogNFT.attributes.machine_address.toString()}
-                    </HoverCardContent>
-                  </HoverCard>
-                </div>
-
-                <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
-                  <p className="text-[12px] text-gray-600 font-semibold">MACHINE CID</p>
-                  <HoverCard>
-                    <HoverCardTrigger className="text-[14px] font-light">{dialogNFT.attributes.machine_cid.slice(0, 17)}...</HoverCardTrigger>
-                    <HoverCardContent className="break-words">
-                      {dialogNFT.attributes.machine_address}
-                    </HoverCardContent>
-                  </HoverCard>
-                </div>
-
-                <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
-                  <p className="text-[12px] text-gray-600 font-semibold">PROVIDER</p>
-                  <HoverCard>
-                    <HoverCardTrigger className="text-[14px] font-light">{dialogNFT.attributes.provider}</HoverCardTrigger>
-                  </HoverCard>
-                </div>
-
-                <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
-                  <p className="text-[12px] text-gray-600 font-semibold">TIMESTAMP</p>
-                  <HoverCard>
-                    <HoverCardTrigger className="text-[14px] font-light">
-                      {new Date(dialogNFT.attributes.timestamp.toString()).toLocaleString(undefined, {
-                        timeZone: "Asia/Kolkata",
-                      })}
-                    </HoverCardTrigger>
-                  </HoverCard>
-                </div>
-
-
+      {selectedNFT && (
+        <Dialog open={!!selectedNFT} onOpenChange={() => setSelectedNFT(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>NFT {selectedNFT.tokenid}</DialogTitle>
+              <DialogDescription>Hedera Offsetting</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-wrap justify-between">
+              <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
+                <p className="text-[12px] text-gray-600 font-semibold">
+                  Account Id:
+                </p>
+                <HoverCard>
+                  <HoverCardTrigger className="text-[14px] font-light">
+                    {selectedNFT.account_id}
+                  </HoverCardTrigger>
+                </HoverCard>{" "}
               </div>
+
+              <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
+                <p className="text-[12px] text-gray-600 font-semibold">
+                  Created Timestamp:
+                </p>
+                <HoverCard>
+                  <HoverCardTrigger className="text-[14px] font-light">
+                    {new Date(
+                      Number(selectedNFT.created_timestamp) * 1000
+                    ).toLocaleString(undefined, {
+                      timeZone: "Asia/Kolkata",
+                    })}
+                  </HoverCardTrigger>
+                </HoverCard>
+              </div>
+
+              <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
+                <p className="text-[12px] text-gray-600 font-semibold">
+                  Modified Timestamp:
+                </p>
+                <HoverCard>
+                  <HoverCardTrigger className="text-[14px] font-light">
+                    {new Date(
+                      Number(selectedNFT.modified_timestamp) * 1000
+                    ).toLocaleString(undefined, {
+                      timeZone: "Asia/Kolkata",
+                    })}
+                  </HoverCardTrigger>
+                </HoverCard>
+              </div>
+
+              <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
+                <p className="text-[12px] text-gray-600 font-semibold">
+                  Metadata:
+                </p>
+                <HoverCard>
+                  <HoverCardTrigger className="text-[14px] font-light">
+                    {/* {decodeBase64(selectedNFT.metadata)} */}
+                    Click to view
+                  </HoverCardTrigger>
+                  <HoverCardContent className="break-words text-blue-500">
+                    {decodeBase64(selectedNFT.metadata)}
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
+
+              <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
+                <p className="text-[12px] text-gray-600 font-semibold">
+                  Serial Number:
+                </p>
+                <HoverCard>
+                  <HoverCardTrigger className="text-[14px] font-light">
+                    {selectedNFT.serial_number}
+                  </HoverCardTrigger>
+                </HoverCard>
+              </div>
+
+              <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
+                <p className="text-[12px] text-gray-600 font-semibold">
+                  Deleted:
+                </p>
+                <HoverCard>
+                  <HoverCardTrigger className="text-[14px] font-light">
+                    {selectedNFT.deleted ? "Yes" : "No"}
+                  </HoverCardTrigger>
+                </HoverCard>
+              </div>
+
+              <div className="w-[46%] m-1 p-3 flex flex-col items-center bg-gray-100 rounded-lg">
+                <p className="text-[12px] text-gray-600 font-semibold">
+                  Token Id:
+                </p>
+                <HoverCard>
+                  <HoverCardTrigger className="text-[14px] font-light">
+                    {selectedNFT.token_id}
+                  </HoverCardTrigger>
+                </HoverCard>
+              </div>
+            </div>
+            <div className="flex justify-between">
               <DialogFooter className="sm:justify-start">
                 <DialogClose asChild>
                   <Button type="button" variant="secondary">
                     Close
                   </Button>
                 </DialogClose>
-
-                <Button onClick={() => verify(dialogNFT.attributes.cid)} type="button" variant="outline">
-                  Verify
-                </Button>
-                <Button onClick={() => window.open(`${opensea_url}/${contract_address}/${dialogNFT.tokenid}`,"_blank",'noopener,noreferrer')} type="button" variant="outline">
-                  View on Opensea
-                </Button>
               </DialogFooter>
-            </DialogContent>
-          )
-        }
-
-      </Dialog>
-
-      <div className="flex justify-center">
-        <Button className="w-[120px]" onClick={incrementPagination}>
-          See More
-        </Button>
-      </div>
+              <DialogFooter className="sm:justify-start">
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary" onClick={sendNft}>
+                    Transfer
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </DashboardLayout>
   );
 }

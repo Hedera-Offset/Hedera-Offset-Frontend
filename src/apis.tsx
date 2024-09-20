@@ -234,26 +234,26 @@ export const checkLogin = async (): Promise<boolean> => {
   }
 };
 
-export const verifyCID = async (cid: string): Promise<boolean> => {
-  try {
-    const resp = await fetch(BASE_URL + "/notarize/verify-cid?cid=" + cid, {
-      method: "GET",
-      headers: {
-        content: "application/json",
-        Authorization: localStorage.getItem("token"),
-      },
-    });
+// export const verifyCID = async (): Promise<boolean> => {
+//   try {
+//     const resp = await fetch(BASE_URL + "/notarizations/tokens", {
+//       method: "GET",
+//       headers: {
+//         content: "application/json",
+//         Authorization: localStorage.getItem("token"),
+//       },
+//     });
 
-    if (resp.status === 200) {
-      return true;
-    }
+//     if (resp.status === 200) {
+//       return true;
+//     }
 
-    return false;
-  } catch (e) {
-    console.log(e);
-    return null;
-  }
-};
+//     return false;
+//   } catch (e) {
+//     console.log(e);
+//     return null;
+//   }
+// };
 
 export const getNotarizations = async (): Promise<Notarization[] | null> => {
   try {
@@ -263,7 +263,7 @@ export const getNotarizations = async (): Promise<Notarization[] | null> => {
       throw new Error("No token found");
     }
 
-    const resp = await fetch(BASE_URL + "/notarizations", {
+    const resp = await fetch(BASE_URL + "/notarizations/tokens", {
       method: "GET",
       headers: {
         content: "application/json",
