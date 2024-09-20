@@ -10,7 +10,8 @@ import { useAtom } from "jotai";
 import { isLoggedInAtom } from "@/atoms/auth";
 import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
-import { web3WalletAtom,contractAtom } from "@/atoms/web3";
+import { web3WalletAtom, contractAtom } from "@/atoms/web3";
+import { connectToHashPack } from "../../config/walletconnect";
 
 import abi from "../../../abi.json";
 
@@ -25,7 +26,6 @@ const MainLayout: React.FC<{
   let [wallet, setWallet] = useAtom(web3WalletAtom);
   let [, setContract] = useAtom(contractAtom);
 
-
   const [_, setIsLoggedin] = useAtom(isLoggedInAtom);
   const navigate = useNavigate();
 
@@ -37,15 +37,13 @@ const MainLayout: React.FC<{
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const provider = new ethers.BrowserProvider(
-        (window as any).ethereum
-      );
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
 
-      const nftContract = new ethers.Contract(CONTRACT_ADDRESS,abi, provider)
+      const nftContract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
 
       setWallet(provider);
       setContract(nftContract);
-      
+
       await provider.send("eth_requestAccounts", []);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
@@ -66,10 +64,10 @@ const MainLayout: React.FC<{
   };
 
   const getWalletAddress = async () => {
-    if (typeof wallet !== 'number') {
+    if (typeof wallet !== "number") {
       setWalletAddress((await wallet.getSigner()).address);
     }
-  }
+  };
 
   useEffect(() => {
     window.addEventListener("scroll", changeNavBg);
@@ -103,7 +101,7 @@ const MainLayout: React.FC<{
             </Button>
 
             <Button
-              onClick={handleWalletConnect}
+              onClick={connectToHashPack}
               className="max-w-32 overflow-x-clip text-ellipsis"
             >
               {walletAddress

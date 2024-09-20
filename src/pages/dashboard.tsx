@@ -16,7 +16,7 @@ export default function DashboardPage() {
 
   const fetchDevices = async () => {
     const devices = await getDevices();
-
+    console.log(devices);
     if (devices) {
       setDevices(devices);
     } else {
@@ -30,7 +30,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout loading={false}>
-      {/* <div className="container">
+      <div className="container">
         <div className="flex flex-wrap gap-4 p-10">
           {devices.length === 0 ? (
             <p className="text-center w-full text-red-500 text-sm">
@@ -41,9 +41,7 @@ export default function DashboardPage() {
               return (
                 <Card
                   className="w-[400px] cursor-pointer"
-                  onClick={() =>
-                    navigate(`/device-detail?address=${item.address}`)
-                  }
+                  onClick={() => navigate(`/device-detail/${item.id}`)}
                 >
                   <CardHeader>
                     <CardTitle>
@@ -55,18 +53,17 @@ export default function DashboardPage() {
 
                   <CardContent className="text-md">
                     <p className="">
-                      <strong>Address: </strong> {item.address.slice(0, 20)}...
+                      {/* <strong>Address: </strong> {item.address.slice(0, 20)}... */}
                     </p>
                     <p className="">
-                      <strong>Machine Id: </strong>{" "}
-                      {item.machineId.slice(0, 20)}...
+                      <strong>Machine Id: </strong> {item.accountId}
                     </p>
                     <p className="">
                       <strong>Location: </strong> {item.city.toUpperCase()},{" "}
                       {item.region.toUpperCase()} - {item.country}
                     </p>
                     <p className="">
-                      <strong>User ID: </strong> {item.userId}
+                      <strong>User ID: </strong> {item.id}
                     </p>
                   </CardContent>
                 </Card>
@@ -74,7 +71,7 @@ export default function DashboardPage() {
             })
           )}
         </div>
-      </div> */}
+      </div>
     </DashboardLayout>
   );
 }
