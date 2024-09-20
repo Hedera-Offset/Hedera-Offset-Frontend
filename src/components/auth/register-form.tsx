@@ -1,5 +1,4 @@
 import * as React from "react";
-
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
 import { Input } from "@/components/ui/input";
@@ -10,8 +9,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -25,12 +22,11 @@ export function UserRegisterForm({
   className,
   ...props
 }: UserRegisterFormProps) {
-  const nameRef = React.useRef<HTMLInputElement>();
-  const pubKeyRef = React.useRef<HTMLInputElement>();
-  const emailRef = React.useRef<HTMLInputElement>();
-  const passwordRef = React.useRef<HTMLInputElement>();
-  const [userType, setUserType] = React.useState("bottom");
-
+  const nameRef = React.useRef<HTMLInputElement>(null);
+  const pubKeyRef = React.useRef<HTMLInputElement>(null);
+  const emailRef = React.useRef<HTMLInputElement>(null);
+  const passwordRef = React.useRef<HTMLInputElement>(null);
+  const [userType, setUserType] = React.useState<string>("user"); // Default to "user"
   const toast = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -39,41 +35,42 @@ export function UserRegisterForm({
     event.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const resp = await userRegister(
+        nameRef.current?.value || "",
+        emailRef.current?.value || "",
+        pubKeyRef.current?.value || "",
+        passwordRef.current?.value || "",
+        userType
+      );
+
+      if (resp === 201) {
+        toast.toast({ title: "User Created" });
+        navigate("/login");
+      } else if (resp === 400) {
+        toast.toast({ title: "Info", description: "User already exists" });
+      } else {
+        toast.toast({ title: "Info", description: "Something went wrong" });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.toast({ title: "Error", description: "Registration failed" });
+    } finally {
       setIsLoading(false);
-    }, 3000);
+    }
   }
 
-  const submit = async () => {
-    const resp = await userRegister(
-      nameRef?.current?.value,
-      pubKeyRef?.current?.value,
-      emailRef?.current?.value,
-      passwordRef?.current?.value
-    );
-
-    if (resp === 201) {
-      toast.toast({ title: "User Created" });
-      navigate("/login");
-    } else if (resp === 400) {
-      toast.toast({ title: "Info", description: "User already exists" });
-    } else {
-      toast.toast({ title: "Info", description: "Something went wrong" });
-    }
-  };
-
   return (
-    <div className={cn("grid gap-6 ", className)} {...props}>
+    <div className={cn("grid gap-6", className)} {...props}>
       <form onSubmit={onSubmit}>
         <div className="grid gap-2">
           <div className="grid gap-1">
-            <Label className="sr-only" htmlFor="email">
+            <Label className="sr-only" htmlFor="name">
               Name
             </Label>
-
             <Input
               id="name"
-              placeholder="Jhon"
+              placeholder="John"
               type="text"
               autoCapitalize="none"
               autoComplete="name"
@@ -85,9 +82,24 @@ export function UserRegisterForm({
 
           <div className="grid gap-1">
             <Label className="sr-only" htmlFor="email">
+              Email
+            </Label>
+            <Input
+              id="email"
+              placeholder="john@example.com"
+              type="email"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect="off"
+              disabled={isLoading}
+              ref={emailRef}
+            />
+          </div>
+
+          <div className="grid gap-1">
+            <Label className="sr-only" htmlFor="publickey">
               Wallet Public Key
             </Label>
-
             <Input
               id="publickey"
               placeholder="0x...."
@@ -101,67 +113,46 @@ export function UserRegisterForm({
           </div>
 
           <div className="grid gap-1">
-            <Label className="sr-only" htmlFor="email">
-              Email
-            </Label>
-
-            <Input
-              id="email"
-              placeholder="jhon@example.com"
-              type="email"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect="off"
-              disabled={isLoading}
-              ref={emailRef}
-            />
-          </div>
-
-          <div className="grid gap-1">
             <Label className="sr-only" htmlFor="password">
               Password
             </Label>
-
             <Input
               id="password"
               placeholder="password"
               type="password"
               autoCapitalize="none"
-              autoComplete="email"
+              autoComplete="password"
               autoCorrect="off"
               disabled={isLoading}
               ref={passwordRef}
             />
           </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">Select User Type</Button>
+              <Button variant="outline">
+                {userType === "user" ? "Select User Type" : userType}
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
               <DropdownMenuLabel>User Type</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => setUserType("admin")}
-                className={userType === "admin" ? "bg-gray-200" : ""}
+                onClick={() => setUserType("BUYER")}
+                className={userType === "BUYER" ? "bg-gray-200" : ""}
               >
-                Admin
+                BUYER
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => setUserType("user")}
-                className={userType === "user" ? "bg-gray-200" : ""}
+                onClick={() => setUserType("GENERATOR")}
+                className={userType === "GENERATOR" ? "bg-gray-200" : ""}
               >
-                User
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setUserType("guest")}
-                className={userType === "guest" ? "bg-gray-200" : ""}
-              >
-                Guest
+                GENERATOR
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button disabled={isLoading} onClick={submit}>
+          <Button disabled={isLoading} type="submit">
             {isLoading && (
               <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
             )}
@@ -182,7 +173,7 @@ export function UserRegisterForm({
         </div>
       </div>
 
-      <Button variant="outline" type="button" disabled={isLoading && false}>
+      <Button variant="outline" type="button" disabled={isLoading}>
         {isLoading ? (
           <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
         ) : (

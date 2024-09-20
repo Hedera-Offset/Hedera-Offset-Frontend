@@ -15,10 +15,10 @@ import HomePage from "./pages/home";
 import RegisterPage from "./pages/register";
 
 function App() {
-  let [isLoggedIn, setIsLoggedIn] = useAtom(isLoggedInAtom);
+  const [isLoggedIn, setIsLoggedIn] = useAtom(isLoggedInAtom);
 
   const checkLoginCallback = async () => {
-    let isLoggedin = await checkLogin();
+    const isLoggedin = await checkLogin();
     console.log(isLoggedIn);
     setIsLoggedIn(isLoggedin);
   };
@@ -42,7 +42,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/devices" element={<AllDevicesPage />} />
-          <Route path="/device-detail" element={<DeviceDetail />} />
+          <Route path="/device-detail/:id" element={<DeviceDetail />} />
           <Route path="/add-device" element={<AddDevicesPage />} />
           <Route path="/nfts" element={<NFTPage />} />
         </Routes>

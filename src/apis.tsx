@@ -1,22 +1,34 @@
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+console.log(BASE_URL);
 
-import { DeviceInfo } from "./interface";
+import { DeviceInfo, Notarization } from "./interface";
 
 export const getDevices = async (): Promise<Device[] | null> => {
   try {
-    const resp = await fetch(BASE_URL + "/device/all/", {
+    const token = localStorage.getItem("token");
+    console.log(token);
+
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    const resp = await fetch(BASE_URL + "/devices", {
       method: "GET",
       headers: {
-        content: "application/json",
-        Authorization: localStorage.getItem("token"),
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
+    if (!resp.ok) {
+      throw new Error(`HTTP error! status: ${resp.status}`);
+    }
+
     const json: Device[] = await resp.json();
-    console.log(json)
+    console.log(json);
     return json;
-  } catch (e: any) {
-    console.log(e);
+  } catch (e) {
+    console.log(e.message);
     return null;
   }
 };
@@ -27,7 +39,7 @@ export const addDevice = async (
 ): Promise<DeviceInfo[] | null> => {
   try {
     console.log(address, machineId);
-    let resp = await fetch(BASE_URL + "/device/add", {
+    const resp = await fetch(BASE_URL + "/device/add", {
       method: "POST",
       headers: {
         content: "application/json",
@@ -42,13 +54,13 @@ export const addDevice = async (
     console.log(resp.status);
 
     if (resp.status === 201) {
-      let json: DeviceInfo[] = await resp.json();
+      const json: DeviceInfo[] = await resp.json();
       console.log(json);
       return json;
     } else {
       return null;
     }
-  } catch (e: any) {
+  } catch (e) {
     console.log(e);
     return null;
   }
@@ -66,28 +78,38 @@ export const deleteDevice = async (deviceId: string) => {
         id: deviceId,
       }),
     });
-  } catch (e: any) {
+  } catch (e) {
     console.log(e);
   }
 };
 
 export const getDeviceDetail = async (
-  address: string
-): Promise<Device | null> => {
+  id?: number
+): Promise<DeviceInfo | null> => {
   try {
-    const resp = await fetch(BASE_URL + "/device/?address=" + address, {
+    console.log("Fetching device details for ID:", id);
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    const resp = await fetch(`${BASE_URL}/devices/${id}`, {
       method: "GET",
       headers: {
-        content: "application/json",
-        Authorization: localStorage.getItem("token"),
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    const json: Device = await resp.json();
+    if (!resp.ok) {
+      throw new Error(`HTTP error! status: ${resp.status}`);
+    }
 
+    const json: DeviceInfo = await resp.json();
     return json;
-  } catch (e: any) {
-    console.log(e);
+  } catch (e) {
+    console.error("Error fetching device details:", e);
     return null;
   }
 };
@@ -97,7 +119,7 @@ export const verifyData = async (
   data: string
 ): Promise<boolean | null> => {
   try {
-    let resp = await fetch(BASE_URL + "/notarize/verify/", {
+    const resp = await fetch(BASE_URL + "/notarizations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,12 +131,12 @@ export const verifyData = async (
       }),
     });
 
-    let json: any = await resp.json();
+    const json = await resp.json();
 
     console.log(json);
 
     return json;
-  } catch (e: any) {
+  } catch (e) {
     console.log(e);
     return null;
   }
@@ -125,7 +147,7 @@ export const login = async (
   password: string
 ): Promise<string | null> => {
   try {
-    let resp = await fetch(BASE_URL + "/auth/login", {
+    const resp = await fetch(BASE_URL + "/auth/login", {
       method: "POST",
       headers: {
         content: "application/json",
@@ -137,14 +159,21 @@ export const login = async (
     });
 
     if (resp.status === 200) {
-      let jsn = await resp.json();
-      console.log(jsn)
-      localStorage.setItem("token", jsn.token);
+      const jsn = await resp.json();
+
+      console.log(jsn.tokens.access.token);
+      const token = jsn.tokens?.access.token;
+      if (!token) {
+        throw new Error("No token found");
+      }
+      if (token) {
+        localStorage.setItem("token", token);
+      }
       return jsn.token;
     }
 
     return null;
-  } catch (e: any) {
+  } catch (e) {
     console.log(e);
     return null;
   }
@@ -152,26 +181,29 @@ export const login = async (
 
 export const register = async (
   name: string,
-  publicKey: string,
   email: string,
-  password: string
+  publicKey: string,
+  password: string,
+  role: string
 ): Promise<number> => {
   try {
-    let resp = await fetch(BASE_URL + "/auth/register", {
+    console.log("test", BASE_URL);
+    const resp = await fetch(BASE_URL + "/auth/register", {
       method: "POST",
       headers: {
         content: "application/json",
       },
       body: new URLSearchParams({
         name: name,
-        publicKey: publicKey,
         email: email,
+        publicKey: publicKey,
         password: password,
+        role: role,
       }),
     });
-    
-    return resp.status
-  } catch (e: any) {
+
+    return resp.status;
+  } catch (e) {
     console.log(e);
     return 500;
   }
@@ -179,11 +211,15 @@ export const register = async (
 
 export const checkLogin = async (): Promise<boolean> => {
   try {
-    let resp = await fetch(BASE_URL + "/auth/me", {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found");
+    }
+    const resp = await fetch(BASE_URL + "/users/get-me", {
       method: "GET",
       headers: {
         content: "application/json",
-        Authorization: localStorage.getItem("token"),
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -192,16 +228,15 @@ export const checkLogin = async (): Promise<boolean> => {
     }
 
     return false;
-  } catch (e: any) {
+  } catch (e) {
     console.log(e);
     return null;
   }
 };
 
-
 export const verifyCID = async (cid: string): Promise<boolean> => {
   try {
-    let resp = await fetch(BASE_URL + "/notarize/verify-cid?cid=" + cid, {
+    const resp = await fetch(BASE_URL + "/notarize/verify-cid?cid=" + cid, {
       method: "GET",
       headers: {
         content: "application/json",
@@ -214,7 +249,36 @@ export const verifyCID = async (cid: string): Promise<boolean> => {
     }
 
     return false;
-  } catch (e: any) {
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+};
+
+export const getNotarizations = async (): Promise<Notarization[] | null> => {
+  try {
+    const token = localStorage.getItem("token");
+    console.log(token);
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    const resp = await fetch(BASE_URL + "/notarizations", {
+      method: "GET",
+      headers: {
+        content: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (resp.status === 200) {
+      const json: Notarization[] = await resp.json();
+      console.log(json);
+      return json;
+    }
+
+    return null;
+  } catch (e) {
     console.log(e);
     return null;
   }

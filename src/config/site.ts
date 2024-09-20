@@ -1,5 +1,5 @@
 export const siteConfig: SiteConfig = {
-  name: "Blockvolt",
+  name: "Hedera Offset",
   description: "Making developers' lives easier on Arbitrum",
   url: "",
   ogImage: "",

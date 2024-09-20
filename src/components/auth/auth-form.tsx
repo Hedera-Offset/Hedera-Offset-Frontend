@@ -37,7 +37,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
     if (token !== null) {
       login({ token });
-      navigate("/");
+      navigate("/dashboard");
     } else {
       alert("Wrong Credential");
     }

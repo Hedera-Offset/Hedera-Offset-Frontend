@@ -1,5 +1,5 @@
 type User = {
-  id: string;
+  id: number;
   email: string;
   name: string;
   password: string;
@@ -19,4 +19,6 @@ type Device = {
   manufacturer: string;
   meter_phase: string;
   data: any;
+  publicKey: string;
+  accountId: number;
 };

@@ -30,13 +30,13 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout loading={false}>
-      <div className="container">
+      {/* <div className="container">
         <div className="flex flex-wrap gap-4 p-10">
-
-          {
-            devices.length === 0 ?
-            <p className="text-center w-full text-red-500 text-sm">No Registered Devices</p>
-            :
+          {devices.length === 0 ? (
+            <p className="text-center w-full text-red-500 text-sm">
+              No Registered Devices
+            </p>
+          ) : (
             devices?.map((item) => {
               return (
                 <Card
@@ -46,19 +46,24 @@ export default function DashboardPage() {
                   }
                 >
                   <CardHeader>
-                    <CardTitle>{item.category.toUpperCase()} - {item.manufacturer.toUpperCase()}</CardTitle>
+                    <CardTitle>
+                      {item.category.toUpperCase()} -{" "}
+                      {item.manufacturer.toUpperCase()}
+                    </CardTitle>
                     <CardDescription></CardDescription>
                   </CardHeader>
-  
+
                   <CardContent className="text-md">
                     <p className="">
-                      <strong>Address: </strong> {item.address.slice(0,20)}...
+                      <strong>Address: </strong> {item.address.slice(0, 20)}...
                     </p>
                     <p className="">
-                      <strong>Machine Id: </strong> {item.machineId.slice(0,20)}...
+                      <strong>Machine Id: </strong>{" "}
+                      {item.machineId.slice(0, 20)}...
                     </p>
                     <p className="">
-                      <strong>Location: </strong> {item.city.toUpperCase()}, {item.region.toUpperCase()} - {item.country}
+                      <strong>Location: </strong> {item.city.toUpperCase()},{" "}
+                      {item.region.toUpperCase()} - {item.country}
                     </p>
                     <p className="">
                       <strong>User ID: </strong> {item.userId}
@@ -67,10 +72,9 @@ export default function DashboardPage() {
                 </Card>
               );
             })
-          }
-
+          )}
         </div>
-      </div>
+      </div> */}
     </DashboardLayout>
   );
 }

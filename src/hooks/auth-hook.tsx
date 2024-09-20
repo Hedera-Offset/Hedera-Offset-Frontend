@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 
 export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useAtom(isLoggedInAtom);
-  const [userData,] = useAtom(userDataAtom);
+  const [userData] = useAtom(userDataAtom);
 
   const login = ({ token }: { token: string }) => {
     // setUserData(userData);
