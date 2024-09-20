@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  overflow-x: hidden;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background-color: #000000;
+}
+
+#hero {
+  background-image: url("https://www.transparenttextures.com/patterns/axiom-pattern.png");
+  background-repeat: repeat;
+
+  /* bg-[linear-gradient(0deg,rgba(0,0,0,1)_25%,rgba(0,0,0,0)_80%)] */
+}
+
+#hero .overlay {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 1%, rgb(0, 0, 0, 0) 40%);
+}
