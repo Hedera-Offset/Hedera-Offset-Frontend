@@ -129,15 +129,15 @@ export default function HomePage() {
   );
 }
 
-function SocialLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a
-      className="rounded-2xl bg-black hover:bg-white/20 text-white border border-[#4C4C4C] px-4 py-1.5 text-sm font-medium z-20 flex flex-row gap-2 items-center"
-      href={href}
-      target="_blank"
-      rel="noreferer"
-    >
-      {children}
-    </a>
-  );
-}
+// function SocialLink({ href, children }: { href: string; children: ReactNode }) {
+//   return (
+//     <a
+//       className="rounded-2xl bg-black hover:bg-white/20 text-white border border-[#4C4C4C] px-4 py-1.5 text-sm font-medium z-20 flex flex-row gap-2 items-center"
+//       href={href}
+//       target="_blank"
+//       rel="noreferer"
+//     >
+//       {children}
+//     </a>
+//   );
+// }

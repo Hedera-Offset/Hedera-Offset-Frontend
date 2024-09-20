@@ -29,29 +29,29 @@ const MainLayout: React.FC<{
   const [_, setIsLoggedin] = useAtom(isLoggedInAtom);
   const navigate = useNavigate();
 
-  async function handleWalletConnect() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!(window as any).ethereum) {
-      return;
-    }
+  // async function handleWalletConnect() {
+  //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //   if (!(window as any).ethereum) {
+  //     return;
+  //   }
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
+  //   try {
+  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  //     const provider = new ethers.BrowserProvider((window as any).ethereum);
 
-      const nftContract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
+  //     const nftContract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
 
-      setWallet(provider);
-      setContract(nftContract);
+  //     setWallet(provider);
+  //     setContract(nftContract);
 
-      await provider.send("eth_requestAccounts", []);
-      const signer = await provider.getSigner();
-      const address = await signer.getAddress();
-      setWalletAddress(address);
-    } catch (e) {
-      console.error("failed to connect", e);
-    }
-  }
+  //     await provider.send("eth_requestAccounts", []);
+  //     const signer = await provider.getSigner();
+  //     const address = await signer.getAddress();
+  //     setWalletAddress(address);
+  //   } catch (e) {
+  //     console.error("failed to connect", e);
+  //   }
+  // }
 
   function handleLogout() {
     localStorage.removeItem("token");

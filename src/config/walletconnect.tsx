@@ -29,7 +29,7 @@ export function setUpHashConnectEvents() {
     pairingData = newPairing;
   });
 
-  hashconnect.disconnectionEvent.on((data) => {
+  hashconnect.disconnectionEvent.on(() => {
     pairingData = null;
   });
 
@@ -68,26 +68,26 @@ export async function disconnect() {
 }
 // Send a transaction
 
-export async function sendTransaction() {
-  if (!pairingData) {
-    console.error(
-      "No pairing data available. Please connect to HashPack first."
-    );
-    return;
-  }
+// export async function sendTransaction() {
+//   if (!pairingData) {
+//     console.error(
+//       "No pairing data available. Please connect to HashPack first."
+//     );
+//     return;
+//   }
 
-  try {
-    const accountID = AccountId.fromString(pairingData.accountIds[0]);
-    const transaction = new TransferTransaction()
-      .addHbarTransfer(accountID, -1) // Subtract 1 HBAR from the connected account
-      .addHbarTransfer("0.0.4668483", 1); // Add 1 HBAR to the recipient's account
+//   try {
+//     const accountID = AccountId.fromString(pairingData.accountIds[0]);
+//     const transaction = new TransferTransaction()
+//       .addHbarTransfer(accountID, -1) // Subtract 1 HBAR from the connected account
+//       .addHbarTransfer("0.0.4668483", 1); // Add 1 HBAR to the recipient's account
 
-    const response = await hashconnect.sendTransaction(accountID, transaction);
-    console.log("Transaction sent successfully:", response);
-  } catch (error) {
-    console.error("Error sending transaction:", error);
-  }
-}
+//     // const response = await hashconnect.sendTransaction(accountID, transaction);
+//     // console.log("Transaction sent successfully:", response);
+//   } catch (error) {
+//     console.error("Error sending transaction:", error);
+//   }
+// }
 
 export async function sendNft() {
   if (!pairingData) {

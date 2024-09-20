@@ -1,4 +1,4 @@
-import { getDeviceDetail, getDevices } from "@/apis";
+import { getDevices } from "@/apis";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import {
   Table,
@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 export default function AllDevicesPage() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [stateChange, setStateChange] = useState(0);
+  const [stateChange] = useState(0);
 
   const navigate = useNavigate();
 
@@ -54,7 +54,7 @@ export default function AllDevicesPage() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Device Name</TableHead>
-              <TableHead className="text-center"> Machine ID</TableHead>
+              <TableHead className="text-left"> Machine ID</TableHead>
               <TableHead>User ID</TableHead>
               <TableHead className="text-right">Info</TableHead>
               <TableHead className="text-right">Delete</TableHead>
@@ -74,8 +74,10 @@ export default function AllDevicesPage() {
                     SONOFF-ELLITE
                     {/* {category.toUpperCase()} - {manufacturer.toUpperCase()} */}
                   </TableCell>
-                  <TableCell>{publicKey}</TableCell>
-                  <TableCell>IBM{/* {userId} */}</TableCell>
+                  <TableCell>{`${publicKey.slice(0, 10)}...${publicKey.slice(
+                    -10
+                  )}`}</TableCell>
+                  <TableCell>1{/* {userId} */}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       className="rounded-full mr-2"

@@ -19,11 +19,11 @@ import {
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+// import { useToast } from "@/components/ui/use-toast";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import { Icons } from "@/components/icons";
 import { DeviceInfo, Notarization } from "@/interface";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+// import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 export default function DeviceDetail() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +31,7 @@ export default function DeviceDetail() {
   const [data, setData] = useState<DeviceInfo | null>();
   const [notarizedData, setNotarizedData] = useState<Notarization[] | null>();
   console.log(data);
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   const getNotarization = async () => {
     try {
