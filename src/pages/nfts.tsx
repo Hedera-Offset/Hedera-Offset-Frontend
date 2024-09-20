@@ -19,7 +19,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { getNotarizations } from "../apis";
+import { getNotarizations, getTokens } from "../apis";
 import { useToast } from "@/components/ui/use-toast";
 import { sendNft } from "../config/walletconnect";
 
@@ -64,7 +64,7 @@ export default function NFTPage() {
 
   const verify = async () => {
     try {
-      const res = await getNotarizations();
+      const res: any = await getNotarizations();
       // console.log("test", res[0].nfts);
       setNfts(res[0].nfts);
 
@@ -88,10 +88,30 @@ export default function NFTPage() {
     }
   };
 
+  const fetchNFT = async () => {
+    try {
+      const res: any = await getTokens();
+      setNfts(res[0].nfts);
+
+    } catch (err: any) {
+      console.log(err);
+    }
+  }
+
   useEffect(() => {
-    verify();
+    fetchNFT();
   }, []);
-  console.log(nfts);
+  
+  console.log(nfts,"==");
+
+  if (nfts === undefined || nfts === null){
+    return (
+      <div>
+
+      </div>
+    )
+  }
+
   return (
     <DashboardLayout loading={false}>
       <h1 className="text-3xl font-bold">Your NFTs</h1>
@@ -112,7 +132,7 @@ export default function NFTPage() {
                 <DialogTrigger asChild>
                   <Button
                     onClick={() => setSelectedNFT(nft)}
-                    variant="primary"
+                    variant="default"
                     className="mx-auto mt-2"
                   >
                     View Details
