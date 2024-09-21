@@ -62,32 +62,6 @@ export default function NFTPage() {
     }
   }, [selectedNFT]);
 
-  const verify = async () => {
-    try {
-      const res: any = await getNotarizations();
-      // console.log("test", res[0].nfts);
-      setNfts(res[0].nfts);
-
-      if (res && res.length > 0) {
-        toast.toast({
-          title: "Token Verification",
-          description: "Token Verified",
-        });
-      } else {
-        toast.toast({
-          title: "Token Verification",
-          description: "Invalid Token",
-        });
-      }
-    } catch (error) {
-      console.error("Error verifying tokens", error);
-      toast.toast({
-        title: "Verification Error",
-        description: "Failed to verify tokens",
-      });
-    }
-  };
-
   const fetchNFT = async () => {
     try {
       const res: any = await getTokens();

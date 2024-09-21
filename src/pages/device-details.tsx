@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layouts/dashboard-layout";
 import { Icons } from "@/components/icons";
 import { DeviceInfo, Notarization } from "@/interface";
+import { useToast } from "@/components/ui/use-toast";
 // import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 export default function DeviceDetail() {
@@ -31,7 +32,18 @@ export default function DeviceDetail() {
   const [data, setData] = useState<DeviceInfo | null>();
   const [notarizedData, setNotarizedData] = useState<Notarization[] | null>();
   console.log(data);
-  // const { toast } = useToast();
+  const toast = useToast();
+
+  const verify = async () => {
+
+    setTimeout(() => {
+      toast.toast({
+        title: "Token Verification",
+        description: "Token Verified",
+      });
+    }, 2000);
+
+  };
 
   const getNotarization = async () => {
     try {
@@ -287,7 +299,7 @@ export default function DeviceDetail() {
 
               <TableCell>
                 <Button
-                  // onClick={() => verify(item.raw.toString())}
+                  onClick={() => verify()}
                   className="rounded-lg mr-2"
                 >
                   <Icons.check className="h-4 w-4" />
